@@ -15,7 +15,12 @@ import {
   ArrowRight,
   Trophy,
   Star,
-  Timer
+  Timer,
+  Lock,
+  Lightbulb,
+  FileText,
+  PenTool,
+  BarChart3
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -83,6 +88,9 @@ export default function LearningPathPage() {
   const [selectedNode, setSelectedNode] = useState<LearningNode | null>(null)
   const [showTest, setShowTest] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showLearningModal, setShowLearningModal] = useState(false)
+  const [currentLearningNode, setCurrentLearningNode] = useState<LearningNode | null>(null)
+  const [showCompletionModal, setShowCompletionModal] = useState(false)
 
   // 模拟学习路径数据
   const mockLearningPath: LearningPath = {
@@ -328,23 +336,60 @@ export default function LearningPathPage() {
       })
     }
     
+    // 显示学习建议模态框
+    setCurrentLearningNode(node)
+    setShowLearningModal(true)
+  }
+
+  const handleCompleteNode = (node: LearningNode) => {
+    if (!learningPath) return
+    
+    // 更新当前节点为已完成
+    const updatedNodes = learningPath.nodes.map(n => {
+      if (n.id === node.id) {
+        return { ...n, status: 'completed' as const }
+      }
+      return n
+    })
+    
+    // 解锁下一个节点
+    const currentIndex = learningPath.nodes.findIndex(n => n.id === node.id)
+    if (currentIndex < learningPath.nodes.length - 1) {
+      const nextNode = updatedNodes[currentIndex + 1]
+      if (nextNode.status === 'locked') {
+        updatedNodes[currentIndex + 1] = { ...nextNode, status: 'available' as const }
+      }
+    }
+    
+    // 更新完成节点数
+    const completedCount = updatedNodes.filter(n => n.status === 'completed').length
+    
+    setLearningPath({
+      ...learningPath,
+      nodes: updatedNodes,
+      completedNodes: completedCount
+    })
+    
+    // 显示完成祝贺
+    setShowCompletionModal(true)
+    setCurrentLearningNode(node)
+  }
+
+  const navigateToLearningTool = (node: LearningNode) => {
     // 根据节点类型跳转到不同页面
     switch (node.type) {
       case 'concept':
-        // 跳转到概念分析页面，传递节点信息
         window.location.href = `/concept-analysis?topic=${encodeURIComponent(node.title)}&description=${encodeURIComponent(node.description)}`
         break
       case 'practice':
-        // 跳转到练习页面（这里可以扩展为专门的练习页面）
-        alert(`开始练习：${node.title}\n\n学习材料：\n${node.materials.map(m => `• ${m.title}`).join('\n')}\n\n建议先查看相关资料，然后进行实践练习。`)
+        // 这里可以扩展为专门的练习页面
+        window.open(`https://leetcode.com/tag/${encodeURIComponent(node.title.toLowerCase())}`, '_blank')
         break
       case 'test':
-        // 跳转到测试页面，传递节点信息
         window.location.href = `/test-generator?topic=${encodeURIComponent(node.title)}&difficulty=${node.difficulty}`
         break
-      default:
-        alert('未知的学习节点类型')
     }
+    setShowLearningModal(false)
   }
 
   const getNodeIcon = (node: LearningNode) => {
@@ -385,10 +430,10 @@ export default function LearningPathPage() {
                 <span>返回</span>
               </Link>
               <div className="flex items-center space-x-3">
-                <div className="text-2xl">👨‍🎓</div>
+                <div className="text-2xl">🎯</div>
                 <div>
-                  <h1 className="text-lg font-semibold text-notion-text">张同学的学习路径</h1>
-                  <p className="text-sm text-notion-text-secondary">技能学习 · 路径规划 · 进度跟踪</p>
+                  <h1 className="text-lg font-semibold text-notion-text">学习路径生成</h1>
+                  <p className="text-sm text-notion-text-secondary">个性化路径规划 · 智能进度跟踪</p>
                 </div>
               </div>
             </div>
@@ -717,6 +762,17 @@ export default function LearningPathPage() {
                         </>
                       )}
                     </button>
+
+                    {/* Mark as Complete Button */}
+                    {selectedNode.status === 'in-progress' && (
+                      <button
+                        onClick={() => handleCompleteNode(selectedNode)}
+                        className="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-notion font-medium transition-colors bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 mt-2"
+                      >
+                        <Trophy className="w-4 h-4" />
+                        <span>标记完成</span>
+                      </button>
+                    )}
                   </motion.div>
                 ) : (
                   <motion.div
@@ -736,6 +792,266 @@ export default function LearningPathPage() {
           </div>
         )}
       </div>
+
+      {/* Learning Guidance Modal */}
+      <AnimatePresence>
+        {showLearningModal && currentLearningNode && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowLearningModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="notion-card max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  {getNodeIcon(currentLearningNode)}
+                  <div>
+                    <h2 className="text-xl font-semibold text-notion-text">{currentLearningNode.title}</h2>
+                    <p className="text-sm text-notion-text-secondary">学习指导与建议</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* 学习目标 */}
+                  <div>
+                    <h3 className="font-medium text-notion-text mb-3 flex items-center space-x-2">
+                      <Target className="w-4 h-4 text-notion-accent" />
+                      <span>学习目标</span>
+                    </h3>
+                    <p className="text-sm text-notion-text-secondary bg-notion-bg-hover p-3 rounded-notion">
+                      {currentLearningNode.description}
+                    </p>
+                  </div>
+
+                  {/* 推荐学习路径 */}
+                  <div>
+                    <h3 className="font-medium text-notion-text mb-3 flex items-center space-x-2">
+                      <BookOpen className="w-4 h-4 text-notion-accent" />
+                      <span>推荐学习步骤</span>
+                    </h3>
+                    <div className="space-y-2">
+                      {currentLearningNode.type === 'concept' && (
+                        <>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">1</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">理论学习</p>
+                              <p className="text-xs text-notion-text-secondary">先通过概念分析工具深入理解核心概念</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">2</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">查看学习材料</p>
+                              <p className="text-xs text-notion-text-secondary">阅读推荐的文章和视频，加深理解</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">3</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">实践应用</p>
+                              <p className="text-xs text-notion-text-secondary">通过简单例子验证理解程度</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {currentLearningNode.type === 'practice' && (
+                        <>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">1</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">复习理论</p>
+                              <p className="text-xs text-notion-text-secondary">回顾相关概念，确保理论基础扎实</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">2</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">从简单开始</p>
+                              <p className="text-xs text-notion-text-secondary">先做基础题目，逐步提升难度</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">3</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">总结规律</p>
+                              <p className="text-xs text-notion-text-secondary">记录解题思路和常见模式</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {currentLearningNode.type === 'test' && (
+                        <>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">1</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">知识回顾</p>
+                              <p className="text-xs text-notion-text-secondary">快速回顾本阶段学习的重点内容</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">2</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">模拟测试</p>
+                              <p className="text-xs text-notion-text-secondary">通过AI生成的测试题检验学习效果</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-notion-bg-hover rounded-notion">
+                            <div className="w-6 h-6 bg-notion-accent text-white rounded-full flex items-center justify-center text-xs font-medium">3</div>
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">查漏补缺</p>
+                              <p className="text-xs text-notion-text-secondary">根据测试结果针对性复习薄弱环节</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 学习材料 */}
+                  <div>
+                    <h3 className="font-medium text-notion-text mb-3 flex items-center space-x-2">
+                      <Star className="w-4 h-4 text-notion-accent" />
+                      <span>推荐学习材料</span>
+                    </h3>
+                    <div className="space-y-2">
+                      {currentLearningNode.materials.map((material, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-notion-bg-hover rounded-notion">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 bg-notion-accent rounded-full" />
+                            <div>
+                              <p className="text-sm font-medium text-notion-text">{material.title}</p>
+                              <p className="text-xs text-notion-text-secondary">{material.source}</p>
+                            </div>
+                          </div>
+                          {material.duration && (
+                            <span className="text-xs text-notion-text-light bg-notion-bg px-2 py-1 rounded">
+                              {material.duration}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 预计时间 */}
+                  <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-notion">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">预计学习时间</span>
+                    </div>
+                    <span className="text-sm text-blue-600 font-medium">{currentLearningNode.estimatedTime}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-3 mt-6 pt-6 border-t border-notion-border">
+                  <button
+                    onClick={() => setShowLearningModal(false)}
+                    className="flex-1 notion-button"
+                  >
+                    稍后学习
+                  </button>
+                  <button
+                    onClick={() => navigateToLearningTool(currentLearningNode)}
+                    className="flex-1 notion-button-primary flex items-center justify-center space-x-2"
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>开始学习</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Completion Celebration Modal */}
+      <AnimatePresence>
+        {showCompletionModal && currentLearningNode && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowCompletionModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="notion-card max-w-md w-full text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+                >
+                  <Trophy className="w-8 h-8 text-green-600" />
+                </motion.div>
+                
+                <h2 className="text-xl font-semibold text-notion-text mb-2">🎉 恭喜完成！</h2>
+                <p className="text-notion-text-secondary mb-4">
+                  你已经成功完成了「{currentLearningNode.title}」的学习
+                </p>
+                
+                {learningPath && (
+                  <div className="bg-notion-bg-hover p-3 rounded-notion mb-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-notion-text-secondary">学习进度</span>
+                      <span className="font-medium text-notion-text">
+                        {learningPath.completedNodes}/{learningPath.totalNodes}
+                      </span>
+                    </div>
+                    <div className="w-full bg-notion-bg rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-notion-accent h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${(learningPath.completedNodes / learningPath.totalNodes) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  {learningPath && learningPath.completedNodes < learningPath.totalNodes && (
+                    <button
+                      onClick={() => {
+                        setShowCompletionModal(false)
+                        // 自动选择下一个可用节点
+                        const nextNode = learningPath.nodes.find(n => n.status === 'available')
+                        if (nextNode) {
+                          setSelectedNode(nextNode)
+                        }
+                      }}
+                      className="w-full notion-button-primary flex items-center justify-center space-x-2"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                      <span>继续下一个</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowCompletionModal(false)}
+                    className="w-full notion-button"
+                  >
+                    返回路径
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

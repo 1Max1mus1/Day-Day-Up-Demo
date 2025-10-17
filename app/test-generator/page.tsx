@@ -179,10 +179,11 @@ export default function TestGeneratorPage() {
       <header className="border-b border-notion-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-notion-accent rounded-notion flex items-center justify-center">
-              <Target className="w-5 h-5 text-white" />
+            <div className="text-2xl">🎯</div>
+            <div>
+              <h1 className="text-lg font-semibold text-notion-text">智能测试生成</h1>
+              <p className="text-sm text-notion-text-secondary">AI智能出题 · 个性化测试</p>
             </div>
-            <h1 className="text-xl font-semibold text-notion-text">智能测试生成器</h1>
           </div>
         </div>
       </header>
@@ -199,7 +200,7 @@ export default function TestGeneratorPage() {
               <div className="w-16 h-16 bg-notion-accent-light rounded-notion flex items-center justify-center mx-auto mb-4">
                 <Brain className="w-8 h-8 text-notion-accent" />
               </div>
-              <h2 className="text-2xl font-bold text-notion-text mb-2">AI智能测试生成</h2>
+              <h2 className="text-2xl font-bold text-notion-text mb-2">智能测试生成</h2>
               <p className="text-notion-text-secondary">
                 输入主题和要求，AI将为你生成个性化的测试题目
               </p>

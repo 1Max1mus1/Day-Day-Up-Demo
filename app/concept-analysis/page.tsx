@@ -241,10 +241,10 @@ export default function ConceptAnalysisPage() {
                 <span>返回</span>
               </Link>
               <div className="flex items-center space-x-3">
-                <div className="text-2xl">👩‍🔬</div>
+                <div className="text-2xl">🧠</div>
                 <div>
-                  <h1 className="text-lg font-semibold text-notion-text">李同学的概念分析</h1>
-                  <p className="text-sm text-notion-text-secondary">文献阅读 · 概念拆解 · 知识建构</p>
+                  <h1 className="text-lg font-semibold text-notion-text">概念分析</h1>
+                  <p className="text-sm text-notion-text-secondary">智能拆解复杂概念 · 构建知识体系</p>
                 </div>
               </div>
             </div>
