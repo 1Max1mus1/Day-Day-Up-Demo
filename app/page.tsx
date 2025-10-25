@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen, Code, ArrowRight, Brain, Target, Zap } from 'lucide-react'
+import { BookOpen, Code, ArrowRight, Brain, Target, Zap, History, Settings } from 'lucide-react'
 import Link from 'next/link'
 
 export default function HomePage() {
@@ -67,12 +67,37 @@ export default function HomePage() {
       {/* Header */}
       <header className="border-b border-notion-border bg-notion-bg/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-notion-accent rounded-notion flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-notion-accent rounded-notion flex items-center justify-center">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-semibold text-notion-text">个性化学习智能体</h1>
             </div>
-            <h1 className="text-xl font-semibold text-notion-text">个性化学习智能体</h1>
-
+            
+            <div className="flex items-center space-x-4">
+              <Link href="/history">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center space-x-2 px-4 py-2 text-notion-text-secondary hover:text-notion-text hover:bg-notion-bg-secondary rounded-notion transition-colors"
+                >
+                  <History className="w-4 h-4" />
+                  <span>历史记录</span>
+                </motion.button>
+              </Link>
+              
+              <Link href="/dev">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center space-x-2 px-4 py-2 text-notion-text-secondary hover:text-notion-text hover:bg-notion-bg-secondary rounded-notion transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>开发者</span>
+                </motion.button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

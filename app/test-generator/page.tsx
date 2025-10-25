@@ -15,6 +15,8 @@ import {
   MessageSquare
 } from 'lucide-react'
 import TestInterface from '@/components/TestInterface'
+import ModelSelector from '@/components/ui/ModelSelector'
+import { DEFAULT_MODEL } from '@/lib/models'
 
 // 定义AI返回的测试结果接口
 interface TestGenerationResult {
@@ -53,6 +55,7 @@ export default function TestGeneratorPage() {
   const [aiResult, setAiResult] = useState<TestGenerationResult | null>(null)
   const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([])
   const [showTest, setShowTest] = useState(false)
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL)
 
   // 检查URL参数并自动填充
   useEffect(() => {
@@ -88,7 +91,8 @@ export default function TestGeneratorPage() {
           topic: topic.trim(),
           difficulty,
           questionCount,
-          questionTypes
+          questionTypes,
+          model: selectedModel
         }),
       })
 
@@ -178,12 +182,19 @@ export default function TestGeneratorPage() {
       {/* Header */}
       <header className="border-b border-notion-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center space-x-3">
-            <div className="text-2xl">🎯</div>
-            <div>
-              <h1 className="text-lg font-semibold text-notion-text">智能测试生成</h1>
-              <p className="text-sm text-notion-text-secondary">AI智能出题 · 个性化测试</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="text-2xl">🎯</div>
+              <div>
+                <h1 className="text-lg font-semibold text-notion-text">智能测试生成</h1>
+                <p className="text-sm text-notion-text-secondary">AI智能出题 · 个性化测试</p>
+              </div>
             </div>
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+              supportedFeatures={['test-generation']}
+            />
           </div>
         </div>
       </header>

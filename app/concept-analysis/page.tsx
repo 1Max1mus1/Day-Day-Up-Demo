@@ -17,6 +17,8 @@ import {
   AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import ModelSelector from '@/components/ui/ModelSelector'
+import { DEFAULT_MODEL } from '@/lib/models'
 
 interface ConceptNode {
   id: string
@@ -55,7 +57,9 @@ interface ConceptAnalysisResult {
 export default function ConceptAnalysisPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [uploadedContent, setUploadedContent] = useState('')
+  const [userBackground, setUserBackground] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL)
 
   // 检查URL参数并自动填充内容
   useEffect(() => {
@@ -136,7 +140,8 @@ export default function ConceptAnalysisPage() {
         },
         body: JSON.stringify({
           text: content,
-          userBackground: '生物医学硕士研一，需要理解跨学科概念'
+          userBackground: userBackground || '通用学习者，需要理解概念',
+          model: selectedModel
         }),
       })
 
@@ -186,6 +191,11 @@ export default function ConceptAnalysisPage() {
   const handleContentUpload = () => {
     if (!uploadedContent.trim()) {
       alert('请输入要分析的内容')
+      return
+    }
+    
+    if (!userBackground.trim()) {
+      alert('请输入您的学习背景，以便提供个性化分析')
       return
     }
     
@@ -248,7 +258,12 @@ export default function ConceptAnalysisPage() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
+              <ModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                supportedFeatures={['concept-analysis']}
+              />
               <span className="px-3 py-1 bg-notion-success-light text-notion-success text-sm rounded-full">
                 概念拆解引擎
               </span>
@@ -321,6 +336,13 @@ export default function ConceptAnalysisPage() {
                       上传论文或输入复杂概念
                     </p>
                     <div className="space-y-3">
+                      <input
+                        type="text"
+                        value={userBackground}
+                        onChange={(e) => setUserBackground(e.target.value)}
+                        placeholder="请输入您的学习背景（如：计算机专业本科生、生物医学硕士研一等）"
+                        className="w-full p-3 border border-notion-border rounded-notion text-sm focus:outline-none focus:border-notion-accent"
+                      />
                       <textarea
                         value={uploadedContent}
                         onChange={(e) => setUploadedContent(e.target.value)}
@@ -330,7 +352,7 @@ export default function ConceptAnalysisPage() {
                       <div className="flex space-x-2">
                         <button
                           onClick={handleContentUpload}
-                          disabled={isAnalyzing || !uploadedContent.trim()}
+                          disabled={isAnalyzing || !uploadedContent.trim() || !userBackground.trim()}
                           className="notion-button-primary flex-1 disabled:opacity-50"
                         >
                           {isAnalyzing ? '分析中...' : '开始分析'}

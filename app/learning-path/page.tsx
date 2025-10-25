@@ -23,6 +23,8 @@ import {
   BarChart3
 } from 'lucide-react'
 import Link from 'next/link'
+import ModelSelector from '@/components/ui/ModelSelector'
+import { DEFAULT_MODEL } from '@/lib/models'
 
 interface LearningNode {
   id: string
@@ -78,6 +80,132 @@ interface LearningPathResult {
   }>;
 }
 
+// 模拟学习路径数据
+const mockLearningPath: LearningPath = {
+  id: 'dynamic-programming',
+  title: '动态规划系统学习',
+  description: '从基础概念到高级应用的完整学习路径',
+  totalNodes: 8,
+  completedNodes: 0,
+  estimatedDuration: '3-4周',
+  nodes: [
+    {
+      id: 'dp-intro',
+      title: '动态规划基础概念',
+      description: '理解动态规划的核心思想和基本原理',
+      type: 'concept',
+      difficulty: 'beginner',
+      estimatedTime: '2小时',
+      status: 'available',
+      prerequisites: [],
+      materials: [
+        { type: 'video', title: '动态规划入门讲解', source: 'YouTube', duration: '45分钟' },
+        { type: 'article', title: '什么是动态规划？', source: 'LeetCode', duration: '15分钟' }
+      ]
+    },
+    {
+      id: 'recursion-review',
+      title: '递归基础回顾',
+      description: '巩固递归概念，为动态规划打基础',
+      type: 'concept',
+      difficulty: 'beginner',
+      estimatedTime: '1.5小时',
+      status: 'locked',
+      prerequisites: ['dp-intro'],
+      materials: [
+        { type: 'video', title: '递归思维训练', source: 'Bilibili', duration: '30分钟' },
+        { type: 'code', title: '递归经典例题', source: 'GitHub', duration: '60分钟' }
+      ]
+    },
+    {
+      id: 'memoization',
+      title: '记忆化搜索',
+      description: '从递归到动态规划的桥梁',
+      type: 'concept',
+      difficulty: 'intermediate',
+      estimatedTime: '3小时',
+      status: 'locked',
+      prerequisites: ['dp-intro', 'recursion-review'],
+      materials: [
+        { type: 'video', title: '记忆化搜索详解', source: 'YouTube', duration: '60分钟' },
+        { type: 'code', title: '斐波那契数列优化', source: 'LeetCode', duration: '30分钟' },
+        { type: 'exercise', title: '记忆化练习题', source: 'LeetCode', duration: '90分钟' }
+      ]
+    },
+    {
+      id: 'dp-patterns',
+      title: '经典DP模式',
+      description: '掌握线性DP、区间DP等常见模式',
+      type: 'practice',
+      difficulty: 'intermediate',
+      estimatedTime: '4小时',
+      status: 'available',
+      prerequisites: ['memoization'],
+      materials: [
+        { type: 'article', title: 'DP模式总结', source: '代码随想录', duration: '45分钟' },
+        { type: 'code', title: '最长递增子序列', source: 'LeetCode', duration: '60分钟' },
+        { type: 'exercise', title: 'DP模式练习', source: 'LeetCode', duration: '150分钟' }
+      ]
+    },
+    {
+      id: 'dp-optimization',
+      title: 'DP优化技巧',
+      description: '空间优化、滚动数组等高级技巧',
+      type: 'concept',
+      difficulty: 'advanced',
+      estimatedTime: '3小时',
+      status: 'locked',
+      prerequisites: ['dp-patterns'],
+      materials: [
+        { type: 'video', title: 'DP空间优化', source: 'YouTube', duration: '40分钟' },
+        { type: 'code', title: '滚动数组实现', source: 'GitHub', duration: '45分钟' }
+      ]
+    },
+    {
+      id: 'tree-dp',
+      title: '树形DP',
+      description: '在树结构上的动态规划应用',
+      type: 'practice',
+      difficulty: 'advanced',
+      estimatedTime: '4小时',
+      status: 'locked',
+      prerequisites: ['dp-optimization'],
+      materials: [
+        { type: 'video', title: '树形DP入门', source: 'Bilibili', duration: '50分钟' },
+        { type: 'exercise', title: '树形DP练习', source: 'LeetCode', duration: '180分钟' }
+      ]
+    },
+    {
+      id: 'dp-test-1',
+      title: '阶段性测试',
+      description: '检验前面学习的掌握程度',
+      type: 'test',
+      difficulty: 'intermediate',
+      estimatedTime: '1小时',
+      status: 'locked',
+      prerequisites: ['dp-patterns'],
+      materials: [
+        { type: 'exercise', title: '综合测试题', source: '系统生成', duration: '60分钟' }
+      ]
+    },
+    {
+      id: 'advanced-dp',
+      title: '高级DP应用',
+      description: '状态压缩DP、概率DP等高级主题',
+      type: 'practice',
+      difficulty: 'advanced',
+      estimatedTime: '5小时',
+      status: 'locked',
+      prerequisites: ['tree-dp', 'dp-test-1'],
+      materials: [
+        { type: 'video', title: '状态压缩DP', source: 'YouTube', duration: '60分钟' },
+        { type: 'code', title: '旅行商问题', source: 'GitHub', duration: '90分钟' },
+        { type: 'exercise', title: '高级DP练习', source: 'LeetCode', duration: '150分钟' }
+      ]
+    }
+  ]
+}
+
 export default function LearningPathPage() {
   const [goal, setGoal] = useState('')
   const [currentLevel, setCurrentLevel] = useState('')
@@ -91,132 +219,88 @@ export default function LearningPathPage() {
   const [showLearningModal, setShowLearningModal] = useState(false)
   const [currentLearningNode, setCurrentLearningNode] = useState<LearningNode | null>(null)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL)
 
-  // 模拟学习路径数据
-  const mockLearningPath: LearningPath = {
-    id: 'dynamic-programming',
-    title: '动态规划系统学习',
-    description: '从基础概念到高级应用的完整学习路径',
-    totalNodes: 8,
-    completedNodes: 2,
-    estimatedDuration: '3-4周',
-    nodes: [
-      {
-        id: 'dp-intro',
-        title: '动态规划基础概念',
-        description: '理解动态规划的核心思想和基本原理',
-        type: 'concept',
-        difficulty: 'beginner',
-        estimatedTime: '2小时',
-        status: 'completed',
-        prerequisites: [],
-        materials: [
-          { type: 'video', title: '动态规划入门讲解', source: 'YouTube', duration: '45分钟' },
-          { type: 'article', title: '什么是动态规划？', source: 'LeetCode', duration: '15分钟' }
-        ]
-      },
-      {
-        id: 'recursion-review',
-        title: '递归基础回顾',
-        description: '巩固递归概念，为动态规划打基础',
-        type: 'concept',
-        difficulty: 'beginner',
-        estimatedTime: '1.5小时',
-        status: 'completed',
-        prerequisites: [],
-        materials: [
-          { type: 'video', title: '递归思维训练', source: 'Bilibili', duration: '30分钟' },
-          { type: 'code', title: '递归经典例题', source: 'GitHub', duration: '60分钟' }
-        ]
-      },
-      {
-        id: 'memoization',
-        title: '记忆化搜索',
-        description: '从递归到动态规划的桥梁',
-        type: 'concept',
-        difficulty: 'intermediate',
-        estimatedTime: '3小时',
-        status: 'in-progress',
-        prerequisites: ['dp-intro', 'recursion-review'],
-        materials: [
-          { type: 'video', title: '记忆化搜索详解', source: 'YouTube', duration: '60分钟' },
-          { type: 'code', title: '斐波那契数列优化', source: 'LeetCode', duration: '30分钟' },
-          { type: 'exercise', title: '记忆化练习题', source: 'LeetCode', duration: '90分钟' }
-        ]
-      },
-      {
-        id: 'dp-patterns',
-        title: '经典DP模式',
-        description: '掌握线性DP、区间DP等常见模式',
-        type: 'practice',
-        difficulty: 'intermediate',
-        estimatedTime: '4小时',
-        status: 'available',
-        prerequisites: ['memoization'],
-        materials: [
-          { type: 'article', title: 'DP模式总结', source: '代码随想录', duration: '45分钟' },
-          { type: 'code', title: '最长递增子序列', source: 'LeetCode', duration: '60分钟' },
-          { type: 'exercise', title: 'DP模式练习', source: 'LeetCode', duration: '150分钟' }
-        ]
-      },
-      {
-        id: 'dp-optimization',
-        title: 'DP优化技巧',
-        description: '空间优化、滚动数组等高级技巧',
-        type: 'concept',
-        difficulty: 'advanced',
-        estimatedTime: '3小时',
-        status: 'locked',
-        prerequisites: ['dp-patterns'],
-        materials: [
-          { type: 'video', title: 'DP空间优化', source: 'YouTube', duration: '40分钟' },
-          { type: 'code', title: '滚动数组实现', source: 'GitHub', duration: '45分钟' }
-        ]
-      },
-      {
-        id: 'tree-dp',
-        title: '树形DP',
-        description: '在树结构上的动态规划应用',
-        type: 'practice',
-        difficulty: 'advanced',
-        estimatedTime: '4小时',
-        status: 'locked',
-        prerequisites: ['dp-optimization'],
-        materials: [
-          { type: 'video', title: '树形DP入门', source: 'Bilibili', duration: '50分钟' },
-          { type: 'exercise', title: '树形DP练习', source: 'LeetCode', duration: '180分钟' }
-        ]
-      },
-      {
-        id: 'dp-test-1',
-        title: '阶段性测试',
-        description: '检验前面学习的掌握程度',
-        type: 'test',
-        difficulty: 'intermediate',
-        estimatedTime: '1小时',
-        status: 'available',
-        prerequisites: ['dp-patterns'],
-        materials: [
-          { type: 'exercise', title: '综合测试题', source: '系统生成', duration: '60分钟' }
-        ]
-      },
-      {
-        id: 'advanced-dp',
-        title: '高级DP应用',
-        description: '状态压缩DP、概率DP等高级主题',
-        type: 'practice',
-        difficulty: 'advanced',
-        estimatedTime: '5小时',
-        status: 'locked',
-        prerequisites: ['tree-dp', 'dp-test-1'],
-        materials: [
-          { type: 'video', title: '状态压缩DP', source: 'YouTube', duration: '60分钟' },
-          { type: 'code', title: '旅行商问题', source: 'GitHub', duration: '90分钟' },
-          { type: 'exercise', title: '高级DP练习', source: 'LeetCode', duration: '150分钟' }
-        ]
-      }
-    ]
+  // 保存学习路径状态到localStorage
+  const saveLearningPathState = (path: LearningPath) => {
+    try {
+      localStorage.setItem(`learning-path-${path.id}`, JSON.stringify(path))
+    } catch (error) {
+      console.error('保存学习路径状态失败:', error)
+    }
   }
+
+  // 从localStorage加载学习路径状态
+  const loadLearningPathState = (pathId: string): LearningPath | null => {
+    try {
+      const saved = localStorage.getItem(`learning-path-${pathId}`)
+      return saved ? JSON.parse(saved) : null
+    } catch (error) {
+      console.error('加载学习路径状态失败:', error)
+      return null
+    }
+  }
+
+  // 在组件加载时恢复学习路径状态
+  useEffect(() => {
+    // 尝试从localStorage恢复状态
+    const savedPath = loadLearningPathState('dynamic-programming')
+    if (savedPath) {
+      setLearningPath(savedPath)
+    } else {
+      // 如果没有保存的状态，使用默认的模拟数据
+      setLearningPath(mockLearningPath)
+    }
+  }, [])
+
+  // 检查节点是否可以解锁（前置条件是否满足）
+  const canUnlockNode = (node: LearningNode, allNodes: LearningNode[]): boolean => {
+    if (node.prerequisites.length === 0) return true
+    
+    return node.prerequisites.every(prereqId => {
+      const prereqNode = allNodes.find(n => n.id === prereqId)
+      return prereqNode && prereqNode.status === 'completed'
+    })
+  }
+
+  // 更新所有节点的解锁状态
+  const updateNodeAvailability = (nodes: LearningNode[]): LearningNode[] => {
+    return nodes.map(node => {
+      if (node.status === 'completed' || node.status === 'in-progress') {
+        return node // 已完成或进行中的节点保持状态
+      }
+      
+      if (canUnlockNode(node, nodes)) {
+        return { ...node, status: 'available' as const }
+      } else {
+        return { ...node, status: 'locked' as const }
+      }
+    })
+  }
+
+
+
+  // 初始化学习路径
+  useEffect(() => {
+    // 尝试从localStorage恢复状态
+    const savedPath = loadLearningPathState()
+    
+    if (savedPath) {
+      // 如果有保存的状态，使用保存的状态并更新节点可用性
+      const updatedPath = {
+        ...savedPath,
+        nodes: updateNodeAvailability(savedPath.nodes)
+      }
+      setLearningPath(updatedPath)
+    } else {
+      // 如果没有保存的状态，使用模拟数据
+      const updatedMockPath = {
+        ...mockLearningPath,
+        nodes: updateNodeAvailability(mockLearningPath.nodes)
+      }
+      setLearningPath(updatedMockPath)
+    }
+  }, [])
 
   const handleGeneratePath = async () => {
     if (!goal.trim() || !currentLevel.trim() || !timeframe.trim()) {
@@ -236,7 +320,8 @@ export default function LearningPathPage() {
         body: JSON.stringify({
           goal: goal.trim(),
           currentLevel: currentLevel.trim(),
-          timeframe: timeframe.trim()
+          timeframe: timeframe.trim(),
+          model: selectedModel
         }),
       })
 
@@ -250,11 +335,24 @@ export default function LearningPathPage() {
       
       // 转换AI结果为内部格式
       const convertedPath = convertAIResultToLearningPath(result)
-      setLearningPath(convertedPath)
       
       // 如果AI结果为空或转换失败，使用模拟数据
       if (!convertedPath || convertedPath.nodes.length === 0) {
-        setLearningPath(mockLearningPath)
+        const updatedMockPath = {
+          ...mockLearningPath,
+          nodes: updateNodeAvailability(mockLearningPath.nodes)
+        }
+        setLearningPath(updatedMockPath)
+      } else {
+        // 应用正确的节点可用性状态
+        const updatedPath = {
+          ...convertedPath,
+          nodes: updateNodeAvailability(convertedPath.nodes)
+        }
+        setLearningPath(updatedPath)
+        
+        // 保存到localStorage
+        saveLearningPathState(updatedPath)
       }
       
     } catch (error) {
@@ -278,7 +376,25 @@ export default function LearningPathPage() {
       topics.forEach((topic, topicIndex) => {
         const nodeId = `node-${phaseIndex}-${topicIndex}`
         const isFirst = phaseIndex === 0 && topicIndex === 0
-        const prerequisites = isFirst ? [] : nodeIndex > 0 ? [`node-${Math.floor((nodeIndex - 1) / 3)}-${(nodeIndex - 1) % 3}`] : []
+        
+        // 简化前置条件逻辑：每个节点依赖前一个节点（线性依赖）
+        let prerequisites: string[] = []
+        if (nodeIndex > 0) {
+          // 找到前一个节点的ID
+          let prevNodeId = ''
+          let tempIndex = 0
+          phases.forEach((p, pIdx) => {
+            p.topics?.forEach((t, tIdx) => {
+              if (tempIndex === nodeIndex - 1) {
+                prevNodeId = `node-${pIdx}-${tIdx}`
+              }
+              tempIndex++
+            })
+          })
+          if (prevNodeId) {
+            prerequisites = [prevNodeId]
+          }
+        }
         
         // 安全访问resources数组
         const resources = topic.resources || []
@@ -330,10 +446,22 @@ export default function LearningPathPage() {
       const updatedNodes = learningPath.nodes.map(n => 
         n.id === node.id ? { ...n, status: 'in-progress' as const } : n
       )
-      setLearningPath({
+      
+      const updatedPath = {
         ...learningPath,
         nodes: updatedNodes
-      })
+      }
+      
+      setLearningPath(updatedPath)
+      
+      // 同时更新selectedNode状态
+      const updatedNode = updatedNodes.find(n => n.id === node.id)
+      if (updatedNode) {
+        setSelectedNode(updatedNode)
+      }
+      
+      // 保存状态到localStorage
+      saveLearningPathState(updatedPath)
     }
     
     // 显示学习建议模态框
@@ -345,30 +473,29 @@ export default function LearningPathPage() {
     if (!learningPath) return
     
     // 更新当前节点为已完成
-    const updatedNodes = learningPath.nodes.map(n => {
+    let updatedNodes = learningPath.nodes.map(n => {
       if (n.id === node.id) {
         return { ...n, status: 'completed' as const }
       }
       return n
     })
     
-    // 解锁下一个节点
-    const currentIndex = learningPath.nodes.findIndex(n => n.id === node.id)
-    if (currentIndex < learningPath.nodes.length - 1) {
-      const nextNode = updatedNodes[currentIndex + 1]
-      if (nextNode.status === 'locked') {
-        updatedNodes[currentIndex + 1] = { ...nextNode, status: 'available' as const }
-      }
-    }
+    // 重新计算所有节点的可用性
+    updatedNodes = updateNodeAvailability(updatedNodes)
     
     // 更新完成节点数
     const completedCount = updatedNodes.filter(n => n.status === 'completed').length
     
-    setLearningPath({
+    const updatedPath = {
       ...learningPath,
       nodes: updatedNodes,
       completedNodes: completedCount
-    })
+    }
+    
+    setLearningPath(updatedPath)
+    
+    // 保存状态到localStorage
+    saveLearningPathState(updatedPath)
     
     // 显示完成祝贺
     setShowCompletionModal(true)
@@ -376,6 +503,28 @@ export default function LearningPathPage() {
   }
 
   const navigateToLearningTool = (node: LearningNode) => {
+    // 先更新节点状态为进行中
+    if (learningPath && node.status !== 'in-progress') {
+      const updatedNodes = learningPath.nodes.map(n => 
+        n.id === node.id ? { ...n, status: 'in-progress' as const } : n
+      )
+      
+      const updatedPath = {
+        ...learningPath,
+        nodes: updatedNodes
+      }
+      
+      setLearningPath(updatedPath)
+      
+      // 同时更新selectedNode状态
+      const updatedNode = updatedNodes.find(n => n.id === node.id)
+      if (updatedNode) {
+        setSelectedNode(updatedNode)
+      }
+      
+      saveLearningPathState(updatedPath)
+    }
+    
     // 根据节点类型跳转到不同页面
     switch (node.type) {
       case 'concept':
@@ -438,6 +587,11 @@ export default function LearningPathPage() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              <ModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                supportedFeatures={['learning-path']}
+              />
               <span className="px-3 py-1 bg-notion-accent-light text-notion-accent text-sm rounded-full">
                 路径生成器
               </span>

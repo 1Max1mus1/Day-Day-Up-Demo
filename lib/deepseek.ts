@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import { callAI, ChatMessage } from './ai-client';
+import { DEFAULT_MODEL } from './models';
 
 // DeepSeek API 客户端配置
 const deepseek = new OpenAI({
@@ -75,8 +77,11 @@ export interface TestGenerationResponse {
   timeLimit: number;
 }
 
-// 概念分析功能
-export async function analyzeConceptsWithAI(request: ConceptAnalysisRequest): Promise<ConceptAnalysisResponse> {
+// 概念分析功能（支持模型选择）
+export async function analyzeConceptsWithAI(
+  request: ConceptAnalysisRequest, 
+  model?: string
+): Promise<ConceptAnalysisResponse> {
   const prompt = `
 作为一个专业的教育AI助手，请分析以下文本中的核心概念。
 
@@ -112,23 +117,23 @@ export async function analyzeConceptsWithAI(request: ConceptAnalysisRequest): Pr
 `;
 
   try {
-    const response = await deepseek.chat.completions.create({
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'system',
-          content: '你是一个专业的教育AI助手，擅长概念分析和知识拆解。请始终返回有效的JSON格式。'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
+    const messages: ChatMessage[] = [
+      {
+        role: 'system',
+        content: '你是一个专业的教育AI助手，擅长概念分析和知识拆解。请始终返回有效的JSON格式。'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
+
+    const response = await callAI(messages, model || DEFAULT_MODEL, {
       temperature: 0.7,
-      max_tokens: 2000,
+      maxTokens: 2000,
     });
 
-    const content = response.choices[0]?.message?.content;
+    const content = response.content;
     if (!content) {
       throw new Error('AI响应为空');
     }
@@ -151,7 +156,10 @@ export async function analyzeConceptsWithAI(request: ConceptAnalysisRequest): Pr
 }
 
 // 学习路径生成功能
-export async function generateLearningPathWithAI(request: LearningPathRequest): Promise<any> {
+export async function generateLearningPathWithAI(
+  request: LearningPathRequest, 
+  model?: string
+): Promise<any> {
   const prompt = `
 作为一个专业的学习规划师，请为用户生成个性化学习路径。
 
@@ -206,23 +214,23 @@ export async function generateLearningPathWithAI(request: LearningPathRequest): 
 `;
 
   try {
-    const response = await deepseek.chat.completions.create({
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'system',
-          content: '你是一个专业的学习规划师，擅长制定个性化学习计划。请始终返回有效的JSON格式。'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
+    const messages: ChatMessage[] = [
+      {
+        role: 'system',
+        content: '你是一个专业的学习规划师，擅长制定个性化学习计划。请始终返回有效的JSON格式。'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
+
+    const response = await callAI(messages, model || DEFAULT_MODEL, {
       temperature: 0.7,
-      max_tokens: 2500,
+      maxTokens: 2500,
     });
 
-    const content = response.choices[0]?.message?.content;
+    const content = response.content;
     if (!content) {
       throw new Error('AI响应为空');
     }
@@ -243,7 +251,7 @@ export async function generateLearningPathWithAI(request: LearningPathRequest): 
 }
 
 // 测试题目生成功能
-export async function generateTestWithAI(request: TestGenerationRequest): Promise<TestGenerationResponse> {
+export async function generateTestWithAI(request: TestGenerationRequest, model?: string): Promise<TestGenerationResponse> {
   const prompt = `
 作为一个专业的测试题目生成专家，请为指定主题生成测试题目。
 
@@ -278,23 +286,27 @@ export async function generateTestWithAI(request: TestGenerationRequest): Promis
 `;
 
   try {
-    const response = await deepseek.chat.completions.create({
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'system',
-          content: '你是一个专业的测试题目生成专家，擅长创建高质量的评估题目。请始终返回有效的JSON格式。'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.8,
-      max_tokens: 3000,
-    });
+    const messages: ChatMessage[] = [
+      {
+        role: 'system',
+        content: '你是一个专业的测试题目生成专家，擅长创建高质量的评估题目。请始终返回有效的JSON格式。'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
 
-    const content = response.choices[0]?.message?.content;
+    const response = await callAI(
+      messages,
+      model || DEFAULT_MODEL,
+      {
+        temperature: 0.8,
+        maxTokens: 3000,
+      }
+    );
+
+    const content = response.content;
     if (!content) {
       throw new Error('AI响应为空');
     }
